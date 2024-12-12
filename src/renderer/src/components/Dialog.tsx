@@ -7,7 +7,6 @@ interface DialogProps {
   children?: React.ReactNode
   title?: string
   isOpen?: boolean
-  autoWidth?: boolean
   onClose: () => void
   className?: string
 }
@@ -16,7 +15,6 @@ const Dialog: React.FC<DialogProps> = ({
   isOpen,
   onClose,
   className,
-  autoWidth,
   children,
   title
 }) => {

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import { twMerge } from 'tailwind-merge'
 import { clearLocalStorage } from '@/store/LocalStorage'
-import { LogOut } from 'lucide-react'
+import { Power } from 'lucide-react'
 
 interface DialogProps {
   children?: React.ReactNode
@@ -28,12 +28,12 @@ export const LeftBar: React.FC<DialogProps> = ({ className, children }) => {
         <div className={'flex flex-col mx-auto gap-2 mt-auto'}>
           <button
             onClick={() => {
-              // clearLocalStorage()
+              clearLocalStorage()
               window.electron.ipcRenderer.send('logout')
             }}
             className="px-2 py-2 w-fit rounded-full bg-red-500 text-white"
           >
-            <LogOut size={20}/>
+            <Power size={20}/>
           </button>
         </div>
       </div>

@@ -38,11 +38,14 @@ interface AuthContextType {
   logout: () => void
   makeCall: (dst: string, name: string) => void
   endCall: () => void
+  acceptCall: () => void
   handleHold: () => void
   handleOpenPhone: () => void
   handleDisableMic: () => void
   handleMuteAudio: () => void
   callState: string
+  incommingId: string
+  callDuration: string
   isOpenPhone: boolean
   isDisableMic: boolean
   isMuteAudio: boolean
@@ -62,19 +65,17 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
   // const [coolPhone, setCoolphone] = useState<any>(null)
   const [remoteAudio, setRemoteAudio] = useState<any>(null)
   const [extension, setExtension] = useState<any>('1111')
-  const [displayName, setDisplayName] = useState<any>(
-    `${getItem('FIRSTNAME')} ${getItem('LASTNAME')}`
-  )
+  const [displayName, setDisplayName] = useState<any>('')
   const [userPw, setUserPw] = useState<string>('')
   const [username, setUsername] = useState<string>('')
   const [password, setPassword] = useState<string>('1111')
   const [sipServer, setSipServer] = useState<string>('')
   const [wsHost, setWsHost] = useState<string>('ws://103.27.238.195:8088/ws')
-  const [wsPort, setWsPort] = useState<string>('')
+  // const [wsPort, setWsPort] = useState<string>('')
   const [callDuration, setCallDuration] = React.useState<string>('')
   const [callState, setCallState] = React.useState<string>('')
-  const [openOutGoing, setOpenOutGoing] = React.useState(false)
-  const [openInComming, setOpenInComming] = React.useState(false)
+  // const [openOutGoing, setOpenOutGoing] = React.useState(false)
+  // const [openInComming, setOpenInComming] = React.useState(false)
   const [isOpenPhone, setIsOpenPhone] = React.useState<boolean>(false)
   const [isDisableMic, setIsDisableMic] = React.useState<boolean>(false)
   const [isMuteAudio, setIsMuteAudio] = React.useState<boolean>(false)
@@ -103,7 +104,8 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
             setPassword(data[0]?.password)
             setSipServer(data[0]?.pbx?.host)
             setWsHost(data[0]?.pbx?.WsHost)
-            setWsPort(data[0]?.pbx?.WsPort)
+            // setWsPort(data[0]?.pbx?.WsPort)
+            setDisplayName(`${getItem('FIRSTNAME')} ${getItem('LASTNAME')}`)
           }
           setIsOnline(true)
           // toast.success(res?.data.message, toastOptions);
@@ -120,7 +122,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     }
 
     const fetchUser = async () => {
-      console.log("user: ", user);
+      console.log('user: ', user)
       const configLogin = {
         method: 'post',
         url: `${AUTH_URL}/login`,
@@ -278,6 +280,24 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     }
   }
 
+  function add_stream() {
+    if (sessionjs && sessionjs.connection) {
+      const handleAddStream = (e: any) => {
+        remoteAudio.srcObject = e.stream
+      }
+
+      sessionjs.connection.addEventListener('addstream', handleAddStream)
+
+      // Cleanup function to remove the event listener when the session ends
+      return () => {
+        sessionjs.connection.removeEventListener('addstream', handleAddStream)
+        remoteAudio.srcObject = null
+      }
+    }
+    // Return undefined or null if the condition is not met
+    return undefined
+  }
+
   // Gọi hàm để khởi tạo cuộc gọi tới số cụ thể
   function hold() {
     session?.hold()
@@ -294,8 +314,8 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
   function resetCall() {
     if (intervalId) clearInterval(intervalId)
     setCallDuration('')
-    setOpenOutGoing(false)
-    setOpenInComming(false)
+    // setOpenOutGoing(false)
+    // setOpenInComming(false)
   }
 
   const socket = new JsSIP.WebSocketInterface(wsHost)
@@ -321,7 +341,6 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
   }
   useEffect(() => {
     if (sipServer) {
-
       initCoolPhone()
       // setCoolphone(newCoolPhone)
     }
@@ -359,17 +378,17 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
       console.log('stream outgoing  -------->')
       sessionjs.on('connecting', function () {
         console.log('CONNECT')
-        setOpenOutGoing(true)
+        // setOpenOutGoing(true)
         setSession(sessionjs)
         setCallState('ringing')
       })
       sessionjs.on('peerconnection', function (e: any) {
-        console.log('1accepted')
+        console.log('1accepted: ', e)
       })
       sessionjs.on('ended', completeSession)
       sessionjs.on('failed', completeSession)
       sessionjs.on('accepted', function (e: any) {
-        console.log('accepted')
+        console.log('accepted: ', e)
         setCallState('answered')
         const startTime = new Date() // Thời điểm bắt đầu
         intervalId = setInterval(() => {
@@ -378,7 +397,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
         }, 1000)
       })
       sessionjs.on('confirmed', function (e: any) {
-        console.log('CONFIRM STREAM')
+        console.log('CONFIRM STREAM: ', e)
       })
     }
 
@@ -394,7 +413,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
       sessionjs.on('ended', completeSession)
       sessionjs.on('failed', completeSession)
       sessionjs.on('accepted', function (e: any) {
-        console.log('accepted')
+        console.log('accepted: ', e)
         setCallState('answered')
         const startTime = new Date() // Thời điểm bắt đầu
         intervalId = setInterval(() => {
@@ -403,12 +422,12 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
         }, 1000)
       })
       sessionjs.on('confirmed', function (e: any) {
-        console.log('CONFIRM STREAM')
+        console.log('CONFIRM STREAM: ', e)
       })
 
       // console.log("Incoming Call: ", sessionjs);
       setSession(sessionjs)
-      setOpenInComming(true)
+      // setOpenInComming(true)
       setCallState('ringing')
       setIncommingId(sessionjs._request.from._uri._user)
       const ringtone = new Audio(ringtoneSrc)
@@ -417,7 +436,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
   }
 
   const makeCall = (numTels: string) => {
-    if(!coolPhone) initCoolPhone()
+    if (!coolPhone) initCoolPhone()
     const options = {
       mediaConstraints: { audio: true, video: false },
       pcConfig: {
@@ -434,22 +453,6 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     const numTel = numTels.toString()
     coolPhone?.call(numTel, options)
     add_stream()
-  }
-
-  function add_stream() {
-    if (sessionjs && sessionjs.connection) {
-      const handleAddStream = (e: any) => {
-        remoteAudio.srcObject = e.stream
-      }
-
-      sessionjs.connection.addEventListener('addstream', handleAddStream)
-
-      // Cleanup function to remove the event listener when the session ends
-      return () => {
-        sessionjs.connection.removeEventListener('addstream', handleAddStream)
-        remoteAudio.srcObject = null
-      }
-    }
   }
 
   const acceptCall = () => {
@@ -482,10 +485,6 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     return !isMuteAudio
   }
 
-  const Calling = () => {
-    return <></>
-  }
-
   const login = (username: string, password: string) => {
     setDataLogin({ username, password })
   }
@@ -508,6 +507,9 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
         handleOpenPhone,
         handleDisableMic,
         handleMuteAudio,
+        acceptCall,
+        incommingId,
+        callDuration,
         isOpenPhone,
         isDisableMic,
         isMuteAudio,

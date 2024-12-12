@@ -20,6 +20,7 @@ export default defineConfig({
         '@/mocks': resolve('src/renderer/src/mocks'),
         '@/utils': resolve('src/renderer/src/utils'),
         '@/lib': resolve('src/renderer/src/lib'),
+        '@/components': resolve('src/renderer/src/components'),
       }
     },
     plugins: [react()]

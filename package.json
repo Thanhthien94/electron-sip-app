@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
-  "author": "example.com",
+  "author": "Thanhthien94",
   "homepage": "https://electron-vite.org",
   "scripts": {
     "format": "prettier --write .",
@@ -19,6 +19,14 @@
     "build:win": "npm run build && electron-builder --win",
     "build:mac": "electron-vite build && electron-builder --mac",
     "build:linux": "electron-vite build && electron-builder --linux"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Thanhthien94/electron-sip-app"
+  },
+  "publish": {
+    "provider": "github",
+    "releaseType": "release"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",
@@ -39,6 +47,7 @@
     "clsx": "^2.1.1",
     "electron": "^31.0.2",
     "electron-builder": "^24.13.3",
+    "electron-log": "^5.2.4",
     "electron-vite": "^2.3.0",
     "eslint": "^8.57.0",
     "eslint-plugin-react": "^7.34.3",

@@ -8,12 +8,12 @@ interface ToastProps {
     // position?: ToastPosition
     children: React.ReactNode
 }
-interface ToastOptions {
-    position: 'bottom-left'|'top-right' | 'top-center' | 'top-left';
-    autoClose: number;
-    theme: 'colored' | 'dark';
-    closeButton: boolean;
-  }
+// interface ToastOptions {
+//     position: 'bottom-left'|'top-right' | 'top-center' | 'top-left';
+//     autoClose: number;
+//     theme: 'colored' | 'dark';
+//     closeButton: boolean;
+//   }
 const Toast: React.FC<ToastProps> = ({
     children
 }) => {

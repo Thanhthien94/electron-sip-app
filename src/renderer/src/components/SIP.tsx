@@ -30,7 +30,7 @@ export const SIP = () => {
           <button
             data-active={
               destination !== '' ||
-              (callState !== 'ringing' && callState !== 'hangup' && callState !== '')
+              (callState !== 'ringing' && callState !== 'hangup' && callState !== 'answered' && callState !== '')
             }
             className="font-thin text-green-600 hover:text-green-400 p-1 px-3 rounded-full data-[active=false]:hidden"
             onClick={() => {
