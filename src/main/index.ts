@@ -11,7 +11,7 @@ function createWindow(): void {
     width: 900,
     height: 670,
     show: false,
-    autoHideMenuBar: true,
+    autoHideMenuBar: process.platform !== 'darwin' ? false : true,
     ...(process.platform === 'linux' ? { icon } : {}),
     center: true,
     title: 'Call Center',

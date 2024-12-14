@@ -21,7 +21,9 @@ const Toast: React.FC<ToastProps> = ({
     return (
         <>
             <ToastContainer theme="colored" position="bottom-left" stacked/>
+            <div className="min-h-[100vh]">
             {children}
+            </div>
         </>
      );
 }

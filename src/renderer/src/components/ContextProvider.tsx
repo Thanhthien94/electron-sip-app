@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import React, { createContext, useContext, useState, useEffect, ReactNode, Dispatch, SetStateAction } from 'react'
 import axios from 'axios'
 import { AUTH_URL } from '@/lib/config'
 import { toast } from 'react-toastify'
@@ -31,9 +31,22 @@ interface DataLogin {
   password: string
 }
 
+interface CDRInfo {
+  from_num: string
+  to_num: string
+  from_name: string
+  to_name: string
+  duration: string
+  billSec: string
+  disposition: string
+  record: string
+  created_at: Date
+}
+
 // Định nghĩa kiểu dữ liệu cho AuthContext
 interface AuthContextType {
   user: User | null
+  cdrInfo: CDRInfo | null
   login: (username: string, password: string) => void
   logout: () => void
   makeCall: (dst: string, name: string) => void
@@ -43,6 +56,8 @@ interface AuthContextType {
   handleOpenPhone: () => void
   handleDisableMic: () => void
   handleMuteAudio: () => void
+  setIsOnline: Dispatch<SetStateAction<boolean>>
+  setCdrInfo: Dispatch<SetStateAction<CDRInfo | null>>
   callState: string
   incommingId: string
   callDuration: string
@@ -50,6 +65,7 @@ interface AuthContextType {
   isDisableMic: boolean
   isMuteAudio: boolean
   isHold: boolean
+  isOnline: boolean
 }
 
 // Tạo AuthContext
@@ -59,6 +75,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export const AuthProvider: React.FC<Props> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null)
   const [dataLogin, setDataLogin] = useState<DataLogin | null>(null)
+  const [cdrInfo, setCdrInfo] = useState<CDRInfo | null>(null)
 
   const [incommingId, setIncommingId] = useState<string>('')
   const [session, setSession] = useState<any>(null)
@@ -499,6 +516,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
+        cdrInfo,
         login,
         logout,
         makeCall,
@@ -508,13 +526,16 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
         handleDisableMic,
         handleMuteAudio,
         acceptCall,
+        setIsOnline,
+        setCdrInfo,
         incommingId,
         callDuration,
+        isOnline,
         isOpenPhone,
         isDisableMic,
         isMuteAudio,
         callState,
-        isHold
+        isHold,
       }}
     >
       <Dialog
