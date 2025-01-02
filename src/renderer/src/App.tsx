@@ -5,7 +5,7 @@ export default function App(): JSX.Element {
   return (
     <div className="flex h-full items-center justify-center">
         <DraggableTopBar />
-        <span className="text-sky-400 absolute top-1">⭐️ Finstar SIP ☎️ ⭐️</span>
+        <span className="text-sky-400 absolute top-1">⭐️ Onestar SIP ☎️ ⭐️</span>
       <ResizablePanelGroup
         direction="horizontal"
         className="min-h-[100vh] min-w-[100vw] max-w-full border"

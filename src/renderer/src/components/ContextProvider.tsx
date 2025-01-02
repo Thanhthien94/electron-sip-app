@@ -1,6 +1,14 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect, ReactNode, Dispatch, SetStateAction } from 'react'
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+  Dispatch,
+  SetStateAction
+} from 'react'
 import axios from 'axios'
 import { AUTH_URL } from '@/lib/config'
 import { toast } from 'react-toastify'
@@ -9,6 +17,11 @@ import { getItem, saveItem, clearLocalStorage } from '@/store/LocalStorage'
 
 import JsSIP from 'jssip'
 import Dialog from './Dialog'
+import debug from 'debug'
+import { stat } from 'fs'
+
+debug.enable('JsSIP:*')
+// debug.enable('JsSIP:RTCSession');
 
 const ringtoneSrc = '/audio/original-phone-ringtone-36558.mp3'
 
@@ -59,6 +72,7 @@ interface AuthContextType {
   setIsOnline: Dispatch<SetStateAction<boolean>>
   setCdrInfo: Dispatch<SetStateAction<CDRInfo | null>>
   callState: string
+  statusCode: number | null
   incommingId: string
   callDuration: string
   isOpenPhone: boolean
@@ -91,6 +105,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
   // const [wsPort, setWsPort] = useState<string>('')
   const [callDuration, setCallDuration] = React.useState<string>('')
   const [callState, setCallState] = React.useState<string>('')
+  const [statusCode, setStatusCode] = React.useState<number | null>(null)
   // const [openOutGoing, setOpenOutGoing] = React.useState(false)
   // const [openInComming, setOpenInComming] = React.useState(false)
   const [isOpenPhone, setIsOpenPhone] = React.useState<boolean>(false)
@@ -365,7 +380,11 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
 
   useEffect(() => {
     if (callState === 'hangup') {
-      toast.success('Cuộc gọi đã kết thúc', toastOptions)
+      if(statusCode === 200) {
+        toast.success('Cuộc gọi kết thúc', toastOptions)
+      } else {
+        toast.error(`Cuộc gọi kết thúc - SIP code: ${statusCode}`, toastOptions)
+      }
     }
   }, [callState])
 
@@ -381,7 +400,12 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
       sessionjs.terminate()
     }
     sessionjs = newSession
-    const completeSession = function () {
+    const completeSession = function (data: any) {
+      const cause = data.cause // Nguyên nhân kết thúc (lý do)
+      const statusCode = data.message?.status_code // Mã SIP cuối cùng
+      setStatusCode(statusCode)
+      console.log(`Call ended with cause data: ${JSON.stringify(data)}`)
+      console.log(`Call ended with cause: ${cause}, SIP code: ${statusCode}`)
       if (intervalId) {
         clearInterval(intervalId)
         intervalId = null
@@ -535,7 +559,8 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
         isDisableMic,
         isMuteAudio,
         callState,
-        isHold,
+        statusCode,
+        isHold
       }}
     >
       <Dialog

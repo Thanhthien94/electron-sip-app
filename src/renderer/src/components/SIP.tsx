@@ -11,7 +11,7 @@ import {
   Play,
   Pause
 } from 'lucide-react'
-import { formatTime, time } from '@renderer/lib/moment'
+import { formatTime, time, formatDate } from '@renderer/lib/moment'
 
 // import { cn } from '@/lib/utils'
 import { Slider } from '@/components/ui/slider'
@@ -28,7 +28,7 @@ export const SIP = () => {
   }, [callState])
 
   useEffect(() => {
-    console.log('cdrInfo: ', cdrInfo)
+    // console.log('cdrInfo: ', cdrInfo)
     setRecord(cdrInfo?.record as string)
     setDuration(Number(cdrInfo?.duration) as number)
   }, [cdrInfo])
@@ -77,11 +77,11 @@ export const SIP = () => {
 
     useEffect(() => {
       if (record) {
-        console.log('audio: ', record)
+        // console.log('audio: ', record)
         pauseAudio()
         setAudio(
           new Audio(
-            'https://office.finstar.vn/admin/recordings/2024/12/13/out-0971988727-3128-20241213-142503-1734099903.7599.wav'
+            record
           )
         )
         setPosition(0)
@@ -145,7 +145,7 @@ export const SIP = () => {
     }
 
     return (
-      <div>
+      <div data-active={!record} className='px-10 data-[active=true]:hidden'>
         <Slider
           aria-label="time-indicator"
           defaultValue={[position]}
@@ -157,7 +157,7 @@ export const SIP = () => {
             handleSeek(value)
           }}
         />
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center text-xs mt-2">
           <span>{formatDuration(position)}</span>
           <span>{formatDuration(duration - position)}</span>
         </div>
@@ -182,7 +182,7 @@ export const SIP = () => {
             <FastForward fontSize="large" />
           </Button>
         </div>
-        <div>
+        {/* <div>
           <Volume1 />
           <Slider
             aria-label="Volume"
@@ -203,53 +203,17 @@ export const SIP = () => {
             aria-haspopup="true"
           >
             {playbackSpeed}x
-            {/* <Card
-              id="speed-menu"
-              // anchorEl={anchorEl}
-              // keepMounted
-              sx={{
-                display: Boolean(anchorEl) ? '' : 'none',
-                position: 'absolute'
-              }}
-            >
-              <MenuItem
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handlePlaybackSpeedChange(0.5)
-                }}
-              >
-                0.5x
-              </MenuItem>
-              <MenuItem
-                onClick={(e) => {
-                  handlePlaybackSpeedChange(1)
-                  e.stopPropagation()
-                }}
-              >
-                1x
-              </MenuItem>
-              <MenuItem
-                onClick={(e) => {
-                  handlePlaybackSpeedChange(1.5)
-
-                  e.stopPropagation()
-                }}
-              >
-                1.5x
-              </MenuItem>
-              <MenuItem
-                onClick={(e) => {
-                  handlePlaybackSpeedChange(2)
-                  e.stopPropagation()
-                }}
-              >
-                2x
-              </MenuItem>
-            </Card> */}
           </Button>
-        </div>
+        </div> */}
       </div>
     )
+  }
+
+  const typeDisposition = {
+      'ANSWERED': 'Nghe máy',
+      'BUSY': 'Bận',
+      'NO ANSWER': 'Không nghe máy',
+      'FAILED': 'Gọi thất bại'
   }
 
   return (
@@ -342,12 +306,12 @@ export const SIP = () => {
             <span className="font-thin">{cdrInfo?.to_num}</span>
           </div>
           <div className="flex gap-2">
-            <span className="font-thin">Thực hiện lúc</span>
-            <span className="font-thin">{formatTime(cdrInfo?.created_at as Date)}</span>
+            <span className="font-thin">Thực hiện:</span>
+            <span className="font-thin">{formatDate(cdrInfo?.created_at as Date)}</span>
           </div>
           <div className="flex gap-2">
             <span className="font-thin">Trạng thái</span>
-            <span className="font-thin">{cdrInfo?.disposition}</span>
+            <span className="font-thin">{typeDisposition[cdrInfo?.disposition as string]}</span>
           </div>
           <div className="flex gap-2">
             <span className="font-thin">Đàm thoại</span>
