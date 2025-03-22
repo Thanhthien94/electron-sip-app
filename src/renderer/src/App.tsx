@@ -11,29 +11,42 @@ import { LoginDialog } from './components/auth/LoginDialog'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Loader } from './components/common/Loader'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Wifi, WifiOff } from 'lucide-react'
 
 export default function App(): JSX.Element {
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth()
+  const { 
+    user, 
+    isAuthenticated, 
+    isLoading: authLoading, 
+    isConnecting 
+  } = useAuth()
+  
   const { isCallActive, initSIP } = useCall()
   const { activeTab, setActiveTab } = useUI()
   
   // Thêm một ref để theo dõi trạng thái khởi tạo SIP
   const isSipInitialized = useRef<boolean>(false)
+  const initAttemptCount = useRef<number>(0)
 
   // Initialize SIP connection when user is authenticated
   useEffect(() => {
-    if (isAuthenticated && user?.token && !isSipInitialized.current) {
+    // Đảm bảo không khởi tạo SIP quá nhiều lần
+    if (isAuthenticated && user?.token && !isSipInitialized.current && initAttemptCount.current < 3) {
       console.log('Khởi tạo SIP sau khi xác thực')
+      
       // Thêm timeout để đảm bảo không bị loop
       setTimeout(() => {
         initSIP();
         isSipInitialized.current = true;
-      }, 500);
+        initAttemptCount.current++;
+      }, 1000);
     }
     
     // Reset the init flag when user logs out
     if (!isAuthenticated) {
       isSipInitialized.current = false;
+      initAttemptCount.current = 0;
     }
   }, [isAuthenticated, user, initSIP])
 
@@ -51,7 +64,27 @@ export default function App(): JSX.Element {
     <MainLayout>
       {/* Top bar with app title */}
       <DraggableTopBar />
-      <span className="text-sky-400 absolute top-1">⭐️ Onestar SIP ☎️ ⭐️</span>
+      <div className="flex items-center justify-center absolute top-1 left-0 right-0">
+        <span className="text-sky-400">⭐️ Onestar SIP ☎️ ⭐️</span>
+        
+        {/* Connection indicator */}
+        {isConnecting && (
+          <div className="ml-4 flex items-center gap-1 animate-pulse">
+            <Wifi size={16} className="text-orange-400" />
+            <span className="text-xs text-orange-400">Đang kết nối SIP...</span>
+          </div>
+        )}
+      </div>
+
+      {/* Connection alert */}
+      {isConnecting && (
+        <Alert className="absolute top-10 right-4 w-auto bg-orange-500/20 border-orange-500 shadow-md z-10 max-w-[300px]">
+          <AlertDescription className="text-xs text-white flex items-center gap-2">
+            <div className="animate-spin h-3 w-3 border-2 border-white rounded-full border-t-transparent"></div>
+            Đang kết nối đến máy chủ SIP...
+          </AlertDescription>
+        </Alert>
+      )}
 
       <ResizablePanelGroup
         direction="horizontal"

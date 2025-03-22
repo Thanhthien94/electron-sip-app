@@ -4,7 +4,14 @@ import { toastOptions } from '@/lib/toast'
 import { useSIP } from '@/hooks/useSIP'
 import { useAuth } from './AuthContext'
 import { CDRInfo } from '@/types/cdr.types'
-import { getSIPCodeInfo } from '@/lib/sipCodes'
+import { 
+  CALL_STATES, 
+  SIP_CODE_MESSAGES,
+  MAX_RECONNECT_ATTEMPTS 
+} from '@/lib/sipConstants'
+
+// Cấu hình thử lại kết nối thông minh
+const CALL_RETRY_DELAYS = [1500, 3000, 5000]; // ms
 
 // Biến toàn cục để theo dõi loop
 if (typeof window !== 'undefined') {
@@ -35,6 +42,7 @@ interface CallContextType {
   handleMuteAudio: () => boolean
   setCdrInfo: React.Dispatch<React.SetStateAction<CDRInfo | null>>
   initSIP: () => void
+  isRetrying: boolean
 }
 
 const CallContext = createContext<CallContextType | undefined>(undefined)
@@ -45,6 +53,7 @@ export const CallProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isHold, setIsHold] = useState<boolean>(false)
   const [isDisableMic, setIsDisableMic] = useState<boolean>(false)
   const [isMuteAudio, setIsMuteAudio] = useState<boolean>(false)
+  const [isRetrying, setIsRetrying] = useState<boolean>(false)
   const [callEndInfo, setCallEndInfo] = useState<{
     code: number | null
     reason: string
@@ -57,10 +66,10 @@ export const CallProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   
   // Refs để theo dõi trạng thái
   const isSipInitialized = useRef<boolean>(false)
-  const sipInitAttempts = useRef<number>(0)
-  const lastSipInitTimestamp = useRef<number>(0)
   const initSipTimeout = useRef<any>(null)
   const isInitSipRunning = useRef<boolean>(false) // Theo dõi nếu initSip đang chạy
+  const callRetryCount = useRef<number>(0)
+  const callRetryTimeout = useRef<any>(null)
 
   // Callback cho sự kiện SIP
   const handleCallTerminated = useCallback((cause: string, code: number, reason: string) => {
@@ -78,7 +87,7 @@ export const CallProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // Cập nhật thông tin kết thúc cuộc gọi
     setCallEndInfo({
       code: actualCode,
-      reason: actualReason,
+      reason: actualReason || SIP_CODE_MESSAGES[actualCode] || 'Kết thúc cuộc gọi',
       successful: actualCode >= 200 && actualCode < 300
     })
   }, [])
@@ -104,6 +113,13 @@ export const CallProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     onCallTerminated: handleCallTerminated,
     onCallConnected: () => {
       console.log('Call connected callback in CallContext')
+      
+      // Reset call retry state
+      callRetryCount.current = 0;
+      if (callRetryTimeout.current) {
+        clearTimeout(callRetryTimeout.current);
+        callRetryTimeout.current = null;
+      }
     },
     onIncomingCall: (callerId) => {
       console.log(`Incoming call from ${callerId}`)
@@ -112,23 +128,29 @@ export const CallProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Reset call states khi cuộc gọi kết thúc
   useEffect(() => {
-    if (callState === 'hangup') {
+    if (callState === CALL_STATES.HANGUP) {
       setIsHold(false)
       setIsDisableMic(false)
       setIsMuteAudio(false)
-      console.log(`Call ended with status code: ${statusCode}`)
-      console.log(`Call end info:`, callEndInfo)
-    }
-    
-    // Log ra để debug
-    console.log(`Call state changed to: ${callState}`)
-    if (callState === 'answered') {
-      console.log('Call is now active - audio should be flowing')
+      
+      // Hiển thị thông báo khi cuộc gọi kết thúc dựa vào callEndInfo
+      if (callEndInfo.code !== null) {
+        // Tránh hiển thị thông báo khi chưa có cuộc gọi nào
+        if (callEndInfo.code !== 0) {
+          const message = callEndInfo.reason || 'Cuộc gọi kết thúc';
+          
+          if (callEndInfo.successful) {
+            toast.success(`${message} (${callEndInfo.code})`, toastOptions);
+          } else {
+            toast.error(`${message} (${callEndInfo.code})`, toastOptions);
+          }
+        }
+      }
     }
   }, [callState, statusCode, callEndInfo])
 
   // Xác định xem cuộc gọi có đang hoạt động không
-  const isCallActive = callState === 'ringing' || callState === 'answered'
+  const isCallActive = callState === CALL_STATES.RINGING || callState === CALL_STATES.ANSWERED
 
   // Xử lý trạng thái giữ máy
   useEffect(() => {
@@ -179,7 +201,7 @@ export const CallProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     // Sử dụng bộ đếm toàn cục để ngăn loop vô hạn
     window._sipLoopCount = (window._sipLoopCount || 0) + 1;
-    if (window._sipLoopCount > 3) {
+    if (window._sipLoopCount > MAX_RECONNECT_ATTEMPTS) {
       console.error('Phát hiện loop, dừng việc khởi tạo SIP');
       toast.error('Khởi tạo SIP không thành công sau nhiều lần thử', toastOptions);
       
@@ -293,7 +315,62 @@ export const CallProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [isAuthenticated]);
 
-  // Hàm thực hiện cuộc gọi với kiểm tra kỹ lưỡng
+  // Hàm lên lịch thử lại cuộc gọi
+  const scheduleCallRetry = (destination: string, name?: string) => {
+    // Hủy timeout hiện tại nếu có
+    if (callRetryTimeout.current) {
+      clearTimeout(callRetryTimeout.current);
+    }
+    
+    // Nếu đã vượt quá số lần thử lại
+    if (callRetryCount.current >= CALL_RETRY_DELAYS.length) {
+      console.log('Đã vượt quá số lần thử gọi tối đa');
+      toast.error('Không thể kết nối cuộc gọi sau nhiều lần thử', toastOptions);
+      callRetryCount.current = 0;
+      setIsRetrying(false);
+      return;
+    }
+    
+    const delay = CALL_RETRY_DELAYS[callRetryCount.current];
+    console.log(`Thử lại cuộc gọi sau ${delay/1000}s (lần ${callRetryCount.current + 1})`);
+    
+    // Hiển thị trạng thái đang thử lại
+    setIsRetrying(true);
+    
+    // Hiển thị thông báo thân thiện
+    if (callRetryCount.current === 0) {
+      toast.info('Đang cố gắng kết nối cuộc gọi...', toastOptions);
+    } else {
+      toast.info(`Thử kết nối lại lần ${callRetryCount.current + 1}...`, toastOptions);
+    }
+    
+    // Lên lịch thử lại
+    callRetryTimeout.current = setTimeout(() => {
+      callRetryCount.current++;
+      
+      // Thử gọi lại với destination đã làm sạch
+      if (ua && ua.isRegistered && ua.isRegistered()) {
+        console.log(`Đang thử gọi lại lần ${callRetryCount.current}: ${destination}`);
+        sipMakeCall(destination);
+      } else {
+        // Nếu SIP chưa sẵn sàng, thử khởi tạo lại
+        console.log('SIP chưa sẵn sàng, thử khởi tạo lại trước khi gọi');
+        initSIP().then(() => {
+          // Đợi thêm thời gian để SIP kết nối
+          setTimeout(() => {
+            if (ua && ua.isRegistered && ua.isRegistered()) {
+              sipMakeCall(destination);
+            } else {
+              // Nếu vẫn không kết nối được, lên lịch thử lại
+              scheduleCallRetry(destination, name);
+            }
+          }, 1500);
+        });
+      }
+    }, delay);
+  };
+
+  // Hàm thực hiện cuộc gọi với kiểm tra kỹ lưỡng và thử lại thông minh
   const makeCall = useCallback((destination: string, name: string = '') => {
     if (!destination) {
       toast.warning('Vui lòng nhập số điện thoại', toastOptions);
@@ -308,6 +385,9 @@ export const CallProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return;
     }
     
+    // Reset trạng thái thử lại
+    callRetryCount.current = 0;
+    
     // Kiểm tra SIP đã được khởi tạo chưa
     if (!isSipInitialized.current || !ua) {
       console.log('SIP chưa được khởi tạo, đang khởi tạo lại');
@@ -319,7 +399,8 @@ export const CallProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           if (ua && ua.isRegistered && ua.isRegistered()) {
             sipMakeCall(cleanDestination);
           } else {
-            toast.error('Không thể kết nối đến máy chủ SIP', toastOptions);
+            console.log('SIP vẫn chưa sẵn sàng sau khi khởi tạo, lên lịch thử lại');
+            scheduleCallRetry(cleanDestination, name);
           }
         }, 1500);
       });
@@ -331,18 +412,11 @@ export const CallProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (!ua.isRegistered || !ua.isRegistered()) {
       toast.warning('Đang kết nối đến máy chủ SIP, vui lòng thử lại sau', toastOptions);
       
-      // Thử đăng ký lại
+      // Thử đăng ký lại và lên lịch thử lại
       try {
         ua.register();
-        
-        // Đợi một lúc và thử gọi lại
-        setTimeout(() => {
-          if (ua.isRegistered && ua.isRegistered()) {
-            sipMakeCall(cleanDestination);
-          } else {
-            toast.error('Không thể kết nối đến máy chủ SIP', toastOptions);
-          }
-        }, 2000);
+        console.log('Đã gửi lệnh đăng ký lại, lên lịch thử lại cuộc gọi');
+        scheduleCallRetry(cleanDestination, name);
       } catch (error) {
         console.error('Lỗi khi đăng ký SIP:', error);
         toast.error('Không thể kết nối đến máy chủ SIP', toastOptions);
@@ -383,6 +457,11 @@ export const CallProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         clearTimeout(initSipTimeout.current);
         initSipTimeout.current = null;
       }
+      
+      if (callRetryTimeout.current) {
+        clearTimeout(callRetryTimeout.current);
+        callRetryTimeout.current = null;
+      }
     };
   }, []);
 
@@ -406,7 +485,8 @@ export const CallProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         handleDisableMic,
         handleMuteAudio,
         setCdrInfo,
-        initSIP
+        initSIP,
+        isRetrying
       }}
     >
       {children}

@@ -1,10 +1,8 @@
-// Cập nhật trong components/sip/PhoneView.tsx
-
 import { useState, useEffect } from 'react'
 import { useCall } from '@/contexts/CallContext'
-import { useUI } from '@/contexts/UIContext'
 import { formatTime, time, formatDate } from '@/lib/moment'
 import { CDR_DISPOSITION_TYPES } from '@/types/cdr.types'
+import { CALL_STATES } from '@/lib/sipConstants'
 import { AudioPlayer } from './AudioPlayer'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -18,7 +16,8 @@ import {
   Volume,
   VolumeX,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  RefreshCw
 } from 'lucide-react'
 
 export const PhoneView = () => {
@@ -33,7 +32,8 @@ export const PhoneView = () => {
     isMuteAudio,
     handleDisableMic,
     handleMuteAudio,
-    callEndInfo
+    callEndInfo,
+    isRetrying
   } = useCall()
   
   const [destination, setDestination] = useState<string>('')
@@ -41,12 +41,12 @@ export const PhoneView = () => {
 
   // Reset destination when call ends or starts ringing
   useEffect(() => {
-    if (callState === 'hangup' || callState === 'ringing') {
+    if (callState === CALL_STATES.HANGUP || callState === CALL_STATES.RINGING) {
       setDestination('')
     }
     
     // Hiển thị thông tin cuộc gọi vừa kết thúc
-    if (callState === 'hangup' && callEndInfo.code !== null) {
+    if (callState === CALL_STATES.HANGUP && callEndInfo.code !== null) {
       setShowLastCallInfo(true)
       
       // Tự động ẩn thông tin sau 5 giây
@@ -64,7 +64,7 @@ export const PhoneView = () => {
     
     if (callEndInfo.successful) {
       return (
-        <Badge variant="success" className="flex gap-1 items-center">
+        <Badge className="flex gap-1 items-center bg-green-500 text-white">
           <CheckCircle size={14} />
           <span>{callEndInfo.reason} (SIP {callEndInfo.code})</span>
         </Badge>
@@ -90,20 +90,29 @@ export const PhoneView = () => {
           value={destination}
           onChange={(e) => setDestination(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') {
+            if (e.key === 'Enter' && destination.trim()) {
               makeCall(destination)
             }
           }}
+          disabled={isCallActive || isRetrying}
         />
         
         {/* Conditionally show call button based on state */}
-        {(!isCallActive && destination !== '') && (
+        {(!isCallActive && !isRetrying && destination !== '') && (
           <Button 
             className="font-thin text-green-600 hover:text-green-400 p-1 px-3 rounded-full"
             onClick={() => makeCall(destination)}
           >
             <Phone />
           </Button>
+        )}
+        
+        {/* Show retry indicator */}
+        {isRetrying && (
+          <div className="flex items-center gap-1 text-orange-400 text-sm">
+            <RefreshCw size={16} className="animate-spin" />
+            <span>Đang thử lại...</span>
+          </div>
         )}
         
         {/* Show hangup button during active call */}
@@ -117,7 +126,7 @@ export const PhoneView = () => {
         )}
         
         {/* Call status indicators */}
-        {callState === 'ringing' && (
+        {callState === CALL_STATES.RINGING && (
           <span className="relative flex h-5 w-5 justify-center items-center">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 text-sky-600">
               <PhoneOutgoing />
@@ -128,7 +137,7 @@ export const PhoneView = () => {
           </span>
         )}
         
-        {callState === 'answered' && (
+        {callState === CALL_STATES.ANSWERED && (
           <span className="relative flex h-5 w-5 justify-center items-center">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 text-sky-600">
               <PhoneCall />
@@ -141,18 +150,19 @@ export const PhoneView = () => {
         
         {/* Call status text */}
         <span className="text-sky-400">
-          {callState === 'ringing' && 'Đang kết nối...'}
+          {callState === CALL_STATES.RINGING && 'Đang kết nối...'}
         </span>
         <span className="text-red-400">
-          {callState === 'answered' && callDuration}
+          {callState === CALL_STATES.ANSWERED && callDuration}
         </span>
         
         {/* Microphone and speaker controls - only show during active call */}
-        {callState === 'answered' && (
+        {callState === CALL_STATES.ANSWERED && (
           <div className="flex gap-2">
             <Button
               className={`p-1 rounded-full ${isDisableMic ? 'bg-red-500' : 'bg-transparent'}`}
               onClick={handleDisableMic}
+              title={isDisableMic ? "Bật micrô" : "Tắt micrô"}
             >
               {isDisableMic ? <MicOff size={16} /> : <Mic size={16} />}
             </Button>
@@ -160,6 +170,7 @@ export const PhoneView = () => {
             <Button
               className={`p-1 rounded-full ${isMuteAudio ? 'bg-red-500' : 'bg-transparent'}`}
               onClick={handleMuteAudio}
+              title={isMuteAudio ? "Bật âm thanh" : "Tắt âm thanh"}
             >
               {isMuteAudio ? <VolumeX size={16} /> : <Volume size={16} />}
             </Button>
@@ -175,7 +186,7 @@ export const PhoneView = () => {
         <div className="flex flex-col gap-2 mt-5 p-4 rounded-lg bg-neutral-800/20">
           <div className="flex gap-2">
             <span>Người gọi</span>
-            <span className="text-red-500 font-bold">{cdrInfo.from_name}</span>
+            <span className="text-red-500 font-bold">{cdrInfo.from_name || 'Không xác định'}</span>
           </div>
           <span className="font-thin">Số nội bộ: {cdrInfo.from_num}</span>
           

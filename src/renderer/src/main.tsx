@@ -10,23 +10,32 @@ import { AuthProvider } from './contexts/AuthContext'
 import { CallProvider } from './contexts/CallContext'
 import { UIProvider } from './contexts/UIContext'
 
-// Wrap the app in all necessary providers
+/**
+ * Cấu trúc ứng dụng:
+ * - AuthProvider: Xác thực người dùng, quản lý phiên đăng nhập
+ * - CallProvider: Quản lý cuộc gọi SIP
+ * - UIProvider: Quản lý trạng thái UI, chuyển tab
+ */
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <div className="min-h-[100vh]">
-      {/* Toast notifications */}
+      {/* Toast notifications - cấu hình toàn cục */}
       <ToastContainer 
         theme="colored" 
         position="bottom-left" 
         stacked 
         autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        draggable
+        pauseOnFocusLoss
       />
       
-      {/* Auth context - user authentication */}
+      {/* Providers */}
       <AuthProvider>
-        {/* Call context - SIP calls management */}
         <CallProvider>
-          {/* UI context - UI state management */}
           <UIProvider>
             <App />
           </UIProvider>

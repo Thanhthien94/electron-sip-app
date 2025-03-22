@@ -1,5 +1,6 @@
 import { toast } from 'react-toastify'
 import { toastOptions } from '@/lib/toast'
+import { CALL_STATES, SIP_CODE_MESSAGES } from '@/lib/sipConstants'
 
 // Utility to extract SIP code from raw message
 export const extractSipCodeFromMessage = (message: string): number | null => {
@@ -53,7 +54,7 @@ export const handleRTCSession = (
     handleEarlyMedia: (session: any, audioElement?: HTMLAudioElement) => void,
     countTime: (startTime: Date) => string,
     resetCall: () => void,
-    createNewAudio?: () => HTMLAudioElement,
+    createNewAudio?: () => HTMLAudioElement | null,
   },
   // Options
   options: {
@@ -234,28 +235,38 @@ export const handleRTCSession = (
       // Log final determination
       console.log(`Call ended with cause: "${data.cause}", SIP code: ${sipCode}`)
       
-      // Map SIP code to user-friendly reason
-      if (sipCode >= 200 && sipCode < 300) {
-        reason = 'Kết thúc bình thường'
-        isSuccessful = true
-      } else if (sipCode === 487) {
-        reason = 'Cuộc gọi bị hủy'
-      } else if (sipCode === 408) {
-        reason = 'Không trả lời'
-      } else if (sipCode === 486 || sipCode === 600) {
-        reason = 'Máy bận'
-      } else if (sipCode === 480) {
-        reason = 'Không liên lạc được'
-      } else if (sipCode === 603) {
-        reason = 'Từ chối cuộc gọi'
-      } else if (sipCode >= 400 && sipCode < 500) {
-        reason = 'Lỗi phía client'
-      } else if (sipCode >= 500 && sipCode < 600) {
-        reason = 'Lỗi máy chủ'
-      } else if (sipCode >= 600) {
-        reason = 'Lỗi toàn cục'
+      // Map SIP code to user-friendly reason using SIP_CODE_MESSAGES
+      if (sipCode !== null && SIP_CODE_MESSAGES[sipCode]) {
+        reason = SIP_CODE_MESSAGES[sipCode];
+        isSuccessful = sipCode >= 200 && sipCode < 300;
       } else {
-        reason = 'Kết thúc cuộc gọi'
+        // Fallback if code is not defined in our constants
+        if (sipCode !== null) {
+          if (sipCode >= 200 && sipCode < 300) {
+            reason = 'Kết thúc bình thường';
+            isSuccessful = true;
+          } else if (sipCode === 487) {
+            reason = 'Cuộc gọi bị hủy';
+          } else if (sipCode === 408) {
+            reason = 'Không trả lời';
+          } else if (sipCode === 486 || sipCode === 600) {
+            reason = 'Máy bận';
+          } else if (sipCode === 480) {
+            reason = 'Không liên lạc được';
+          } else if (sipCode === 603) {
+            reason = 'Từ chối cuộc gọi';
+          } else if (sipCode >= 400 && sipCode < 500) {
+            reason = 'Lỗi phía client';
+          } else if (sipCode >= 500 && sipCode < 600) {
+            reason = 'Lỗi máy chủ';
+          } else if (sipCode >= 600) {
+            reason = 'Lỗi toàn cục';
+          } else {
+            reason = 'Kết thúc cuộc gọi';
+          }
+        } else {
+          reason = 'Kết thúc cuộc gọi';
+        }
       }
       
       // Update state with extracted SIP code
@@ -279,18 +290,7 @@ export const handleRTCSession = (
     
     resetCall()
     sessionRef.current = null
-    setCallState('hangup')
-    
-    // Show appropriate toast notification
-    try {
-      if (isSuccessful) {
-        toast.success(reason, toastOptions)
-      } else {
-        toast.error(`${reason} - SIP code: ${sipCode}`, toastOptions)
-      }
-    } catch (toastError) {
-      console.error('Error showing toast notification:', toastError)
-    }
+    setCallState(CALL_STATES.HANGUP)
     
     // Notify through callback if provided
     if (options.onCallTerminated) {
@@ -309,7 +309,9 @@ export const handleRTCSession = (
   const getAudioElement = () => {
     if (createNewAudio && setRemoteAudio) {
       const audioElement = createNewAudio();
-      setRemoteAudio(audioElement);
+      if (audioElement) {
+        setRemoteAudio(audioElement);
+      }
       return audioElement;
     }
     return null;
@@ -322,7 +324,7 @@ export const handleRTCSession = (
     // Progress event - handles early media (ringing from the server)
     newSession.on('progress', (e: any) => {
       console.log('Call is in progress (ringing):', e)
-      setCallState('ringing')
+      setCallState(CALL_STATES.RINGING)
       
       // Check for presence of SDP in response (indicates early media)
       if (e.response && e.response.getHeader('Content-Type') === 'application/sdp') {
@@ -338,7 +340,7 @@ export const handleRTCSession = (
     
     newSession.on('connecting', () => {
       console.log('Outgoing call connecting')
-      setCallState('ringing')
+      setCallState(CALL_STATES.RINGING)
     })
     
     newSession.on('peerconnection', (e: any) => {
@@ -368,7 +370,7 @@ export const handleRTCSession = (
     
     newSession.on('accepted', (e: any) => {
       console.log('Outgoing call accepted:', e)
-      setCallState('answered')
+      setCallState(CALL_STATES.ANSWERED)
       
       // Ensure audio element is created
       const audioElement = getAudioElement();
@@ -408,7 +410,7 @@ export const handleRTCSession = (
       })
     }
     
-    setCallState('ringing')
+    setCallState(CALL_STATES.RINGING)
     setIncomingCallerId(newSession._request.from._uri._user)
     
     // Notify callback
@@ -432,7 +434,7 @@ export const handleRTCSession = (
     
     newSession.on('accepted', (e: any) => {
       console.log('Incoming call accepted:', e)
-      setCallState('answered')
+      setCallState(CALL_STATES.ANSWERED)
       
       // Stop ringtone
       if (ringtoneRef.current) {
