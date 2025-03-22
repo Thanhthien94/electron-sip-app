@@ -1,26 +1,88 @@
-import { SIP, Sidebar, DraggableTopBar } from './components'
+import { useEffect } from 'react'
+import { useAuth } from './contexts/AuthContext'
+import { useCall } from './contexts/CallContext'
+import { useUI } from './contexts/UIContext'
+import { MainLayout } from './components/layouts/MainLayout'
+import { DraggableTopBar } from './components/common/DraggableTopBar'
+import { PhoneView } from './components/sip/PhoneView'
+import { CDRList } from './components/cdr/CDRList'
+import { CustomerList } from './components/customer/CustomerList'
+import { LoginDialog } from './components/auth/LoginDialog'
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Loader } from './components/common/Loader'
 
 export default function App(): JSX.Element {
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth()
+  const { isCallActive, initSIP } = useCall()
+  const { activeTab, setActiveTab } = useUI()
+
+  // Initialize SIP connection when user is authenticated
+  useEffect(() => {
+    if (isAuthenticated && user?.token) {
+      initSIP()
+    }
+  }, [isAuthenticated, user, initSIP])
+
+  // Show login dialog if not authenticated
+  if (!isAuthenticated && !authLoading) {
+    return <LoginDialog />
+  }
+
+  // Show loader while authenticating
+  if (authLoading) {
+    return <Loader message="Đang tải..." />
+  }
+
   return (
-    <div className="flex h-full items-center justify-center">
-        <DraggableTopBar />
-        <span className="text-sky-400 absolute top-1">⭐️ Onestar SIP ☎️ ⭐️</span>
+    <MainLayout>
+      {/* Top bar with app title */}
+      <DraggableTopBar />
+      <span className="text-sky-400 absolute top-1">⭐️ Onestar SIP ☎️ ⭐️</span>
+
       <ResizablePanelGroup
         direction="horizontal"
         className="min-h-[100vh] min-w-[100vw] max-w-full border"
       >
+        {/* Left sidebar with tabs for CDR and Customer */}
         <ResizablePanel defaultSize={40} minSize={25} maxSize={50}>
-          <Sidebar></Sidebar>
-        </ResizablePanel>
-        <ResizableHandle withHandle />
-        <ResizablePanel defaultSize={75}>
-          <div className='mt-6 pt-10 pl-10'>
-          <SIP></SIP>
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full border-r border-gray-400 flex flex-col items-center h-full"
+          >
+            <TabsList className="grid w-[90%] grid-cols-2 gap-1 items-center justify-center bg-neutral-50/20 mt-8">
+              <TabsTrigger value="cdr">CDR</TabsTrigger>
+              <TabsTrigger value="contact">Danh bạ</TabsTrigger>
+            </TabsList>
 
+            <TabsContent value="cdr" className="w-full flex-grow overflow-hidden">
+              <CDRList />
+            </TabsContent>
+
+            <TabsContent value="contact" className="w-full flex-grow overflow-hidden">
+              <CustomerList />
+            </TabsContent>
+          </Tabs>
+        </ResizablePanel>
+
+        {/* Resizable handle between panels */}
+        <ResizableHandle withHandle />
+
+        {/* Right panel for phone and call information */}
+        <ResizablePanel defaultSize={60}>
+          <div className="mt-6 pt-10 pl-10">
+            <PhoneView />
+
+            {/* Conditional content based on call state */}
+            {isCallActive && (
+              <div className="mt-4 p-4 bg-neutral-800/50 rounded-lg">
+                <p className="text-orange-400 font-medium">Cuộc gọi đang diễn ra</p>
+              </div>
+            )}
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>
-    </div>
+    </MainLayout>
   )
 }
