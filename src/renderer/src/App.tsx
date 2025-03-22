@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useAuth } from './contexts/AuthContext'
 import { useCall } from './contexts/CallContext'
 import { useUI } from './contexts/UIContext'
@@ -16,11 +16,24 @@ export default function App(): JSX.Element {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth()
   const { isCallActive, initSIP } = useCall()
   const { activeTab, setActiveTab } = useUI()
+  
+  // Thêm một ref để theo dõi trạng thái khởi tạo SIP
+  const isSipInitialized = useRef<boolean>(false)
 
   // Initialize SIP connection when user is authenticated
   useEffect(() => {
-    if (isAuthenticated && user?.token) {
-      initSIP()
+    if (isAuthenticated && user?.token && !isSipInitialized.current) {
+      console.log('Khởi tạo SIP sau khi xác thực')
+      // Thêm timeout để đảm bảo không bị loop
+      setTimeout(() => {
+        initSIP();
+        isSipInitialized.current = true;
+      }, 500);
+    }
+    
+    // Reset the init flag when user logs out
+    if (!isAuthenticated) {
+      isSipInitialized.current = false;
     }
   }, [isAuthenticated, user, initSIP])
 

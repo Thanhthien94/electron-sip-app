@@ -36,6 +36,7 @@ export const handleRTCSession = (
     setCallDuration: React.Dispatch<React.SetStateAction<string>>,
     setStatusCode: React.Dispatch<React.SetStateAction<number | null>>,
     setIncomingCallerId: React.Dispatch<React.SetStateAction<string>>,
+    setRemoteAudio?: React.Dispatch<React.SetStateAction<HTMLAudioElement | null>>,
   },
   // Refs
   refs: {
@@ -44,36 +45,46 @@ export const handleRTCSession = (
     ringtoneRef: React.MutableRefObject<HTMLAudioElement | null>,
     lastSipMessageRef: React.MutableRefObject<string>,
     hasEarlyMediaRef: React.MutableRefObject<boolean>,
+    audioContextRef?: React.MutableRefObject<AudioContext | null>,
   },
   // Helper functions
   helpers: {
-    addStream: (session: any) => void,
-    handleEarlyMedia: (session: any) => void,
+    addStream: (session: any, audioElement?: HTMLAudioElement) => void,
+    handleEarlyMedia: (session: any, audioElement?: HTMLAudioElement) => void,
     countTime: (startTime: Date) => string,
     resetCall: () => void,
+    createNewAudio?: () => HTMLAudioElement,
   },
   // Options
   options: {
     onCallTerminated?: (cause: string, statusCode: number, reason: string) => void,
     onCallConnected?: () => void,
     onIncomingCall?: (callerId: string) => void,
+    useAudioContext?: boolean,
   }
 ) => {
   console.log('New RTC session received:', ev)
+  
+  // Skip if this is a duplicate event for the same session
+  if (refs.sessionRef.current && refs.sessionRef.current.id === ev.session.id) {
+    console.log('Duplicate session event received, ignoring:', ev.session.id)
+    return
+  }
+  
   const newSession = ev.session
   
   // Destructure state setters
-  const { setSession, setCallState, setCallDuration, setStatusCode, setIncomingCallerId } = setState
+  const { setSession, setCallState, setCallDuration, setStatusCode, setIncomingCallerId, setRemoteAudio } = setState
   
   // Destructure refs
-  const { sessionRef, intervalIdRef, ringtoneRef, lastSipMessageRef, hasEarlyMediaRef } = refs
+  const { sessionRef, intervalIdRef, ringtoneRef, lastSipMessageRef, hasEarlyMediaRef, audioContextRef } = refs
   
   // Destructure helper functions
-  const { addStream, handleEarlyMedia, countTime, resetCall } = helpers
+  const { addStream, handleEarlyMedia, countTime, resetCall, createNewAudio } = helpers
   
   // If there's an active session, terminate it
-  if (sessionRef.current) {
-    console.log('Terminating existing session')
+  if (sessionRef.current && sessionRef.current !== newSession) {
+    console.log('Terminating existing session before handling new one')
     try {
       sessionRef.current.terminate()
     } catch (error) {
@@ -84,6 +95,53 @@ export const handleRTCSession = (
   // Update session state
   setSession(newSession)
   sessionRef.current = newSession
+  
+  // Make sure to clean up listeners when session ends
+  const cleanupSessionListeners = () => {
+    if (!newSession) return
+    
+    // Remove all listeners to prevent memory leaks and duplicate handlers
+    try {
+      newSession.removeAllListeners('progress')
+      newSession.removeAllListeners('connecting')
+      newSession.removeAllListeners('peerconnection')
+      newSession.removeAllListeners('accepted')
+      newSession.removeAllListeners('confirmed')
+      newSession.removeAllListeners('ended')
+      newSession.removeAllListeners('failed')
+      console.log('All session listeners cleaned up')
+    } catch (error) {
+      console.error('Error removing event listeners:', error)
+    }
+    
+    // If the peerConnection exists, clean up its listeners too
+    if (newSession.sessionDescriptionHandler?.peerConnection) {
+      try {
+        const pc = newSession.sessionDescriptionHandler.peerConnection
+        pc.oniceconnectionstatechange = null
+        pc.onicegatheringstatechange = null
+        pc.onsignalingstatechange = null
+        pc.ontrack = null
+        console.log('PeerConnection listeners cleaned up')
+      } catch (error) {
+        console.error('Error cleaning up peerConnection listeners:', error)
+      }
+    }
+    
+    // Close AudioContext if it was created
+    if (options.useAudioContext && audioContextRef?.current) {
+      try {
+        audioContextRef.current.close().then(() => {
+          console.log('AudioContext closed');
+          audioContextRef.current = null;
+        }).catch(err => {
+          console.error('Error closing AudioContext:', err);
+        });
+      } catch (error) {
+        console.error('Error closing AudioContext:', error);
+      }
+    }
+  }
   
   // Define session completion handler with improved SIP code extraction
   const completeSession = (data: any) => {
@@ -146,25 +204,31 @@ export const handleRTCSession = (
       if (!sipCode) {
         console.log(`No SIP code found, mapping from cause: "${cause}"`)
         
-        // Map causes to SIP codes
-        const causeToCodeMap: Record<string, number> = {
-          'BYE': 200,                            // Normal termination 
-          'CANCELED': 487,                       // Request Terminated
-          'Canceled': 487,                       // Request Terminated (capitalization varies)
-          'NO_ANSWER': 408,                      // Request Timeout
-          'REJECTED': 603,                       // Decline
-          'BUSY': 486,                           // Busy Here
-          'TRANSPORT_ERROR': 503,                // Service Unavailable
-          'Dialog/Transaction does not exist': 481, // Call/Transaction Does Not Exist
-          'User Denied Media Access': 403,       // Forbidden (no media access)
-          'WebRTC not supported': 488,           // Not Acceptable Here
-          'Not Found': 404,                      // Not Found
-          'Connection Error': 503,               // Service Unavailable
-          'Timer J expired': 408,                // Request Timeout
-          'Request Timeout': 408                 // Request Timeout
+        // Kiểm tra trường hợp người dùng chủ động kết thúc cuộc gọi
+        if (cause === 'Terminated' && data.originator === 'local') {
+          sipCode = 200;  // Normal OK
+          console.log('Call was terminated by local user, using code 200');
+        } else {
+          // Map causes to SIP codes
+          const causeToCodeMap: Record<string, number> = {
+            'BYE': 200,                            // Normal termination 
+            'CANCELED': 487,                       // Request Terminated
+            'Canceled': 487,                       // Request Terminated (capitalization varies)
+            'NO_ANSWER': 408,                      // Request Timeout
+            'REJECTED': 603,                       // Decline
+            'BUSY': 486,                           // Busy Here
+            'TRANSPORT_ERROR': 503,                // Service Unavailable
+            'Dialog/Transaction does not exist': 481, // Call/Transaction Does Not Exist
+            'User Denied Media Access': 403,       // Forbidden (no media access)
+            'WebRTC not supported': 488,           // Not Acceptable Here
+            'Not Found': 404,                      // Not Found
+            'Connection Error': 503,               // Service Unavailable
+            'Timer J expired': 408,                // Request Timeout
+            'Request Timeout': 408                 // Request Timeout
+          }
+          
+          sipCode = causeToCodeMap[cause] || 500
         }
-        
-        sipCode = causeToCodeMap[cause] || 500
       }
       
       // Log final determination
@@ -241,6 +305,16 @@ export const handleRTCSession = (
     lastSipMessageRef.current = ''
   }
   
+  // Create or ensure we have an audio element for our call
+  const getAudioElement = () => {
+    if (createNewAudio && setRemoteAudio) {
+      const audioElement = createNewAudio();
+      setRemoteAudio(audioElement);
+      return audioElement;
+    }
+    return null;
+  };
+  
   // Outgoing call handlers
   if (newSession.direction === 'outgoing') {
     console.log('Handling outgoing call')
@@ -254,8 +328,11 @@ export const handleRTCSession = (
       if (e.response && e.response.getHeader('Content-Type') === 'application/sdp') {
         console.log('Early media SDP detected in progress event')
         
+        // Create audio element if needed before processing early media
+        const audioElement = getAudioElement();
+        
         // Handle early media
-        handleEarlyMedia(newSession)
+        handleEarlyMedia(newSession, audioElement || undefined)
       }
     })
     
@@ -267,6 +344,9 @@ export const handleRTCSession = (
     newSession.on('peerconnection', (e: any) => {
       console.log('Peerconnection event for outgoing call:', e)
       
+      // Ensure audio element is created
+      const audioElement = getAudioElement();
+      
       // Set up track handling for early media detection
       if (e.peerconnection) {
         e.peerconnection.ontrack = (trackEvent: RTCTrackEvent) => {
@@ -275,10 +355,12 @@ export const handleRTCSession = (
           if (trackEvent.track.kind === 'audio') {
             console.log('Setting up early media from ontrack event')
             
+            // Create a new MediaStream with the received track
             const stream = new MediaStream()
             stream.addTrack(trackEvent.track)
             
-            handleEarlyMedia(newSession)
+            // Make sure we have an audio element
+            handleEarlyMedia(newSession, audioElement || undefined)
           }
         }
       }
@@ -288,9 +370,12 @@ export const handleRTCSession = (
       console.log('Outgoing call accepted:', e)
       setCallState('answered')
       
+      // Ensure audio element is created
+      const audioElement = getAudioElement();
+      
       // Add stream to audio element if we don't already have early media
       if (!hasEarlyMediaRef.current) {
-        addStream(newSession)
+        addStream(newSession, audioElement || undefined)
       }
       
       // Start duration timer
@@ -337,8 +422,12 @@ export const handleRTCSession = (
     
     newSession.on('peerconnection', (e: any) => {
       console.log('Peerconnection event for incoming call:', e)
+      
+      // Ensure audio element is created
+      const audioElement = getAudioElement();
+      
       // Set up to handle audio streams
-      addStream(newSession)
+      addStream(newSession, audioElement || undefined)
     })
     
     newSession.on('accepted', (e: any) => {
@@ -363,8 +452,15 @@ export const handleRTCSession = (
   }
   
   // Common event handlers for both incoming and outgoing calls
-  newSession.on('ended', completeSession)
-  newSession.on('failed', completeSession)
+  newSession.on('ended', (data) => {
+    completeSession(data)
+    cleanupSessionListeners()
+  })
+  
+  newSession.on('failed', (data) => {
+    completeSession(data)
+    cleanupSessionListeners()
+  })
   
   // Set up additional WebRTC monitoring
   if (newSession.sessionDescriptionHandler?.peerConnection) {
@@ -386,7 +482,11 @@ export const handleRTCSession = (
       console.log('Track added:', e.track.kind)
       if (e.track.kind === 'audio') {
         console.log('Audio track added directly to peerConnection')
-        handleEarlyMedia(newSession)
+        
+        // Ensure audio element is created
+        const audioElement = getAudioElement();
+        
+        handleEarlyMedia(newSession, audioElement || undefined)
       }
     }
   }
