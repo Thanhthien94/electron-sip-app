@@ -1,5 +1,5 @@
-appId: code.thien.app
-productName: sip-app
+appId: vn.onestar.sip-app
+productName: Onestar SIP
 directories:
   buildResources: build
 files:
