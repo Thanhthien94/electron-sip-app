@@ -22,8 +22,14 @@ export const DEFAULT_CALL_OPTIONS = {
   mediaConstraints: { audio: true, video: false },
   pcConfig: DEFAULT_RTC_CONFIG,
   RTCConstraints: {"optional": [{'DtlsSrtpKeyAgreement': 'true'}]},
+  extraHeaders: [],
+  mediaStream: undefined,
+  RTCOfferConstraints: {
+    offerToReceiveAudio: true,
+    offerToReceiveVideo: false
+  },
   earlyMedia: true,
-  answerOnProgress: true
+  answerOnProgress: true // Đảm bảo đây được bật
 }
 
 // Các trạng thái cuộc gọi
