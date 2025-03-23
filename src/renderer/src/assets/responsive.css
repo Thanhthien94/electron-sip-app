@@ -1,0 +1,286 @@
+/* Responsive styles cho SIP App */
+
+/* Variables */
+:root {
+    /* Spacing */
+    --app-padding-small: 8px;
+    --app-padding-medium: 16px;
+    --app-padding-large: 24px;
+    
+    /* Platform specific adjustments */
+    --platform-titlebar-height: 30px; /* Sẽ được ghi đè bởi các lớp nền tảng */
+    
+    /* Responsive breakpoints */
+    --breakpoint-sm: 480px;
+    --breakpoint-md: 768px;
+    --breakpoint-lg: 992px;
+    --breakpoint-xl: 1200px;
+    
+    /* Font sizes */
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-md: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    
+    /* Border radius */
+    --border-radius-sm: 4px;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+    --border-radius-full: 9999px;
+  }
+  
+  /* Platform specific adjustments */
+  .platform-win32 {
+    --platform-titlebar-height: 10px;
+  }
+  
+  .platform-darwin {
+    --platform-titlebar-height: 10px;
+  }
+  
+  .platform-linux {
+    --platform-titlebar-height: 10px;
+  }
+  
+  /* Responsive containers */
+  .container-fluid {
+    width: 100%;
+    padding-right: var(--app-padding-medium);
+    padding-left: var(--app-padding-medium);
+  }
+  
+  .container {
+    width: 100%;
+    padding-right: var(--app-padding-medium);
+    padding-left: var(--app-padding-medium);
+    margin-right: auto;
+    margin-left: auto;
+  }
+  
+  /* Small devices */
+  @media (max-width: 576px) {
+    :root {
+      --app-padding-medium: 12px;
+    }
+    
+    .hide-sm {
+      display: none !important;
+    }
+    
+    .flex-col-sm {
+      flex-direction: column !important;
+    }
+    
+    .text-sm-center {
+      text-align: center !important;
+    }
+  }
+  
+  /* Medium devices */
+  @media (min-width: 577px) and (max-width: 768px) {
+    .container {
+      max-width: 540px;
+    }
+    
+    .hide-md {
+      display: none !important;
+    }
+  }
+  
+  /* Large devices */
+  @media (min-width: 769px) and (max-width: 992px) {
+    .container {
+      max-width: 720px;
+    }
+    
+    .hide-lg {
+      display: none !important;
+    }
+  }
+  
+  /* Extra large devices */
+  @media (min-width: 993px) {
+    .container {
+      max-width: 960px;
+    }
+    
+    .hide-xl {
+      display: none !important;
+    }
+  }
+  
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: rgba(128, 128, 128, 0.5);
+    border-radius: var(--border-radius-full);
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(128, 128, 128, 0.7);
+  }
+  
+  /* Dark mode adjustments for scrollbar */
+  .dark ::-webkit-scrollbar-thumb {
+    background: rgba(170, 170, 170, 0.3);
+  }
+  
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: rgba(170, 170, 170, 0.5);
+  }
+  
+  /* High-contrast mode */
+  .high-contrast {
+    --contrast-border: 2px solid yellow;
+  }
+  
+  .high-contrast :focus {
+    outline: var(--contrast-border);
+    outline-offset: 2px;
+  }
+  
+  .high-contrast button,
+  .high-contrast a {
+    text-decoration: underline;
+  }
+  
+  /* Touch-friendly adjustments for buttons and interactive elements */
+  @media (pointer: coarse) {
+    button, 
+    [role="button"],
+    .btn,
+    .clickable,
+    .tab,
+    input[type="checkbox"],
+    input[type="radio"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    .touch-target {
+      position: relative;
+    }
+    
+    .touch-target::after {
+      content: "";
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      bottom: -10px;
+      left: -10px;
+      z-index: 1;
+    }
+  }
+  
+  /* Platform-specific adjustments */
+  /* Windows adjustments */
+  .platform-win32 .window-controls {
+    top: 0;
+    right: 0;
+  }
+  
+  /* macOS adjustments */
+  .platform-darwin .window-controls {
+    top: 0;
+    left: 10px;
+  }
+  
+  /* Linux adjustments */
+  .platform-linux .window-controls {
+    top: 0;
+    right: 0;
+  }
+
+  .window-controls {
+    z-index: 9999; /* Đảm bảo luôn hiển thị trên cùng */
+  }
+  
+  /* Adjust spacing for top bar */
+  .main-content {
+    padding-top: calc(var(--platform-titlebar-height) + var(--app-padding-small));
+  }
+  
+  /* Font adjustments for different platforms */
+  .platform-win32 {
+    font-family: 'Segoe UI', sans-serif;
+  }
+  
+  .platform-darwin {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  }
+  
+  .platform-linux {
+    font-family: 'Ubuntu', 'Droid Sans', sans-serif;
+  }
+  
+  /* Electron specific - avoid overscroll bounce */
+  html, body {
+    overflow: hidden;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  
+  #root {
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .scrollable-content {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Utilities */
+  .flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .space-between {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  /* Accessibility */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+  
+  .not-sr-only {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: 0;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+  }

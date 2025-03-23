@@ -1,0 +1,275 @@
+/* Themes for SIP App */
+
+:root {
+    /* Base colors for theme */
+    --color-primary-50: 240, 249, 255;
+    --color-primary-100: 224, 242, 254;
+    --color-primary-200: 186, 230, 253;
+    --color-primary-300: 125, 211, 252;
+    --color-primary-400: 56, 189, 248;
+    --color-primary-500: 14, 165, 233;
+    --color-primary-600: 2, 132, 199;
+    --color-primary-700: 3, 105, 161;
+    --color-primary-800: 7, 89, 133;
+    --color-primary-900: 12, 74, 110;
+    --color-primary-950: 8, 47, 73;
+    
+    /* Accent color - For call buttons, badges, etc. */
+    --color-accent-50: 255, 247, 237;
+    --color-accent-100: 255, 237, 213;
+    --color-accent-200: 254, 215, 170;
+    --color-accent-300: 253, 186, 116;
+    --color-accent-400: 251, 146, 60;
+    --color-accent-500: 249, 115, 22;
+    --color-accent-600: 234, 88, 12;
+    --color-accent-700: 194, 65, 12;
+    --color-accent-800: 154, 52, 18;
+    --color-accent-900: 124, 45, 18;
+    --color-accent-950: 67, 20, 7;
+    
+    /* Success colors */
+    --color-success-50: 240, 253, 244;
+    --color-success-100: 220, 252, 231;
+    --color-success-500: 34, 197, 94;
+    --color-success-600: 22, 163, 74;
+    --color-success-700: 21, 128, 61;
+    
+    /* Error colors */
+    --color-error-50: 254, 242, 242;
+    --color-error-100: 254, 226, 226;
+    --color-error-500: 239, 68, 68;
+    --color-error-600: 220, 38, 38;
+    --color-error-700: 185, 28, 28;
+    
+    /* Neutral colors */
+    --color-neutral-50: 250, 250, 250;
+    --color-neutral-100: 245, 245, 245;
+    --color-neutral-200: 229, 229, 229;
+    --color-neutral-300: 212, 212, 212;
+    --color-neutral-400: 163, 163, 163;
+    --color-neutral-500: 115, 115, 115;
+    --color-neutral-600: 82, 82, 82;
+    --color-neutral-700: 64, 64, 64;
+    --color-neutral-800: 38, 38, 38;
+    --color-neutral-900: 23, 23, 23;
+    --color-neutral-950: 10, 10, 10;
+    
+    /* Font settings */
+    --font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+    --font-family-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    
+    /* Font weights */
+    --font-weight-thin: 100;
+    --font-weight-extralight: 200;
+    --font-weight-light: 300;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --font-weight-extrabold: 800;
+    --font-weight-black: 900;
+    
+    /* Shadow defaults */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    
+    /* Animations */
+    --transition-all: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-colors: color 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-opacity: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-shadow: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-transform: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  /*** LIGHT THEME (default) ***/
+  :root,
+  .light {
+    color-scheme: light;
+    
+    /* Colors */
+    --color-bg-primary: 255, 255, 255;
+    --color-bg-secondary: 249, 250, 251;
+    --color-bg-tertiary: 243, 244, 246;
+    --color-bg-accent: rgb(var(--color-accent-500));
+    
+    /* Text Colors */
+    --color-text-primary: rgb(var(--color-neutral-900));
+    --color-text-secondary: rgb(var(--color-neutral-700));
+    --color-text-tertiary: rgb(var(--color-neutral-500));
+    --color-text-accent: rgb(var(--color-primary-600));
+    --color-text-on-accent: rgb(255, 255, 255);
+    
+    /* Border Colors */
+    --color-border-light: rgb(var(--color-neutral-200));
+    --color-border-medium: rgb(var(--color-neutral-300));
+    --color-border-heavy: rgb(var(--color-neutral-400));
+    
+    /* Component Colors */
+    --color-card-bg: rgb(255, 255, 255);
+    --color-sidebar-bg: rgb(var(--color-neutral-50));
+    --color-input-bg: rgb(255, 255, 255);
+    --color-input-border: rgb(var(--color-neutral-300));
+    --color-button-primary-bg: rgb(var(--color-primary-600));
+    --color-button-primary-hover: rgb(var(--color-primary-700));
+    --color-button-secondary-bg: rgb(255, 255, 255);
+    --color-button-secondary-hover: rgb(var(--color-neutral-100));
+    
+    /* Call Status Colors */
+    --color-call-active: rgb(var(--color-success-500));
+    --color-call-ringing: rgb(var(--color-accent-500));
+    --color-call-missed: rgb(var(--color-error-500));
+    --color-call-ended: rgb(var(--color-neutral-500));
+    
+    /* Shadows */
+    --shadow-color: rgb(0 0 0 / 0.1);
+    --shadow-color-strong: rgb(0 0 0 / 0.2);
+  }
+  
+  /*** DARK THEME ***/
+  .dark {
+    color-scheme: dark;
+    
+    /* Colors */
+    --color-bg-primary: 27, 27, 31;
+    --color-bg-secondary: 36, 36, 40;
+    --color-bg-tertiary: 44, 44, 48;
+    --color-bg-accent: rgb(var(--color-accent-600));
+    
+    /* Text Colors */
+    --color-text-primary: rgb(229, 231, 235);
+    --color-text-secondary: rgb(209, 213, 219);
+    --color-text-tertiary: rgb(156, 163, 175);
+    --color-text-accent: rgb(var(--color-primary-400));
+    --color-text-on-accent: rgb(255, 255, 255);
+    
+    /* Border Colors */
+    --color-border-light: rgb(47, 47, 51);
+    --color-border-medium: rgb(55, 55, 59);
+    --color-border-heavy: rgb(75, 75, 79);
+    
+    /* Component Colors */
+    --color-card-bg: rgb(36, 36, 40);
+    --color-sidebar-bg: rgb(30, 30, 34);
+    --color-input-bg: rgb(44, 44, 48);
+    --color-input-border: rgb(75, 75, 79);
+    --color-button-primary-bg: rgb(var(--color-primary-700));
+    --color-button-primary-hover: rgb(var(--color-primary-800));
+    --color-button-secondary-bg: rgb(44, 44, 48);
+    --color-button-secondary-hover: rgb(55, 55, 59);
+    
+    /* Call Status Colors */
+    --color-call-active: rgb(var(--color-success-500));
+    --color-call-ringing: rgb(var(--color-accent-500));
+    --color-call-missed: rgb(var(--color-error-500));
+    --color-call-ended: rgb(var(--color-neutral-400));
+    
+    /* Shadows */
+    --shadow-color: rgb(0 0 0 / 0.3);
+    --shadow-color-strong: rgb(0 0 0 / 0.5);
+  }
+  
+  /*** HIGH CONTRAST THEME ***/
+  .high-contrast {
+    color-scheme: dark;
+    
+    /* Colors */
+    --color-bg-primary: 0, 0, 0;
+    --color-bg-secondary: 20, 20, 20;
+    --color-bg-tertiary: 35, 35, 35;
+    --color-bg-accent: rgb(255, 255, 0);
+    
+    /* Text Colors */
+    --color-text-primary: rgb(255, 255, 255);
+    --color-text-secondary: rgb(255, 255, 255);
+    --color-text-tertiary: rgb(255, 255, 255);
+    --color-text-accent: rgb(255, 255, 0);
+    --color-text-on-accent: rgb(0, 0, 0);
+    
+    /* Border Colors */
+    --color-border-light: rgb(255, 255, 255);
+    --color-border-medium: rgb(255, 255, 255);
+    --color-border-heavy: rgb(255, 255, 0);
+    
+    /* Component Colors */
+    --color-card-bg: rgb(0, 0, 0);
+    --color-sidebar-bg: rgb(0, 0, 0);
+    --color-input-bg: rgb(0, 0, 0);
+    --color-input-border: rgb(255, 255, 255);
+    --color-button-primary-bg: rgb(255, 255, 0);
+    --color-button-primary-hover: rgb(220, 220, 0);
+    --color-button-secondary-bg: rgb(0, 0, 0);
+    --color-button-secondary-hover: rgb(40, 40, 40);
+    
+    /* Call Status Colors */
+    --color-call-active: rgb(0, 255, 0);
+    --color-call-ringing: rgb(255, 255, 0);
+    --color-call-missed: rgb(255, 0, 0);
+    --color-call-ended: rgb(255, 255, 255);
+    
+    /* Contrast settings */
+    --contrast-border: 2px solid rgb(255, 255, 0);
+    
+    /* Shadows */
+    --shadow-color: transparent;
+    --shadow-color-strong: transparent;
+    
+    /* Increase text contrast */
+    * {
+      text-shadow: 0 0 0 transparent !important;
+    }
+    
+    /* Increase button contrast */
+    button, .btn, a {
+      border: 2px solid rgb(255, 255, 255) !important;
+      text-decoration: underline !important;
+    }
+    
+    /* Add focus styles */
+    *:focus {
+      outline: 3px solid rgb(255, 255, 0) !important;
+      outline-offset: 2px !important;
+    }
+  }
+  
+  /* CSS Variables that apply theme colors */
+  :root,
+  .light,
+  .dark,
+  .high-contrast {
+    /* Background shades */
+    --bg-primary: rgb(var(--color-bg-primary));
+    --bg-secondary: rgb(var(--color-bg-secondary));
+    --bg-tertiary: rgb(var(--color-bg-tertiary));
+    --bg-accent: var(--color-bg-accent);
+    
+    /* Text styles */
+    --text-primary: var(--color-text-primary);
+    --text-secondary: var(--color-text-secondary);
+    --text-tertiary: var(--color-text-tertiary);
+    --text-accent: var(--color-text-accent);
+    --text-on-accent: var(--color-text-on-accent);
+    
+    /* Border styles */
+    --border-light: var(--color-border-light);
+    --border-medium: var(--color-border-medium);
+    --border-heavy: var(--color-border-heavy);
+    
+    /* Component styles */
+    --card-bg: var(--color-card-bg);
+    --sidebar-bg: var(--color-sidebar-bg);
+    --input-bg: var(--color-input-bg);
+    --input-border: var(--color-input-border);
+    --button-primary-bg: var(--color-button-primary-bg);
+    --button-primary-hover: var(--color-button-primary-hover);
+    --button-secondary-bg: var(--color-button-secondary-bg);
+    --button-secondary-hover: var(--color-button-secondary-hover);
+    
+    /* Call status indications */
+    --call-active: var(--color-call-active);
+    --call-ringing: var(--color-call-ringing);
+    --call-missed: var(--color-call-missed);
+    --call-ended: var(--color-call-ended);
+  }
