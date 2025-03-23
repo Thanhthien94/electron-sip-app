@@ -1,0 +1,52 @@
+/* Ngăn chặn scroll dọc ở body và html */
+html, body {
+    overflow: hidden;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  
+  #root {
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Tùy chỉnh scrollbar cho ứng dụng */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: rgba(128, 128, 128, 0.5);
+    border-radius: 9999px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(128, 128, 128, 0.7);
+  }
+  
+  /* Dark mode scrollbar */
+  .dark ::-webkit-scrollbar-thumb {
+    background: rgba(170, 170, 170, 0.3);
+  }
+  
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: rgba(170, 170, 170, 0.5);
+  }
+  
+  /* Titlebar */
+  header.titlebar {
+    -webkit-app-region: drag;
+    user-select: none;
+  }
+  
+  .titlebar-button {
+    -webkit-app-region: no-drag;
+  }

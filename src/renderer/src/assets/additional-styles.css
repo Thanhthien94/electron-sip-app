@@ -1,0 +1,121 @@
+/* Thêm vào assets/responsive.css hoặc tạo file CSS mới */
+
+/* Ngăn chặn scroll dọc ở body và html */
+html, body {
+    overflow: hidden;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  
+  #root {
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Style cho scrollbar trong các phần nội dung */
+  .scrollable-content {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Tùy chỉnh scrollbar cho ứng dụng */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: rgba(128, 128, 128, 0.5);
+    border-radius: 9999px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(128, 128, 128, 0.7);
+  }
+  
+  /* Dark mode scrollbar */
+  .dark ::-webkit-scrollbar-thumb {
+    background: rgba(170, 170, 170, 0.3);
+  }
+  
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: rgba(170, 170, 170, 0.5);
+  }
+  
+  /* Controls area */
+  .controls-area {
+    display: flex;
+    align-items: center;
+    height: 10px;
+    padding-right: 16px;
+  }
+  
+  /* Settings menu styles */
+  .settings-menu {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+  
+  /* Fix TopBar spacing */
+  .window-controls {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 12px;
+    height: 40px;
+    align-items: center;
+  }
+  
+  /* Slider styling */
+  .volume-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 0.5rem;
+    background: rgba(128, 128, 128, 0.3);
+    border-radius: 0.25rem;
+    outline: none;
+  }
+  
+  .volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 1rem;
+    height: 1rem;
+    background: rgb(249, 115, 22); /* orange-500 */
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  
+  input[type=range]:focus {
+    outline: none;
+  }
+  
+  /* Tách overlay khỏi content */
+  .fixed-controls-layer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 9999;
+  }
+  
+  .fixed-controls-layer > * {
+    pointer-events: auto;
+  }
+  
+  /* Ensure panels don't overflow */
+  .resizable-panel-group {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+  }
