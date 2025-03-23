@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
-import { LogOut, Moon, Sun, Monitor, User, Volume2, BellRing, X } from 'lucide-react'
+import { LogOut, Moon, Sun, Monitor, Volume2, BellRing, X } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useTheme } from '@/contexts/ThemeContext'
 import { Button } from '@/components/ui/button'
+import { UpdateSettings } from './UpdateSettings'
 
 interface SettingsMenuProps {
   isVisible: boolean
@@ -39,7 +40,7 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ isVisible, onClose }
   if (!isVisible) return null
 
   // Nếu không hiển thị, không render gì cả
-  if (!isVisible) return null;
+  if (!isVisible) return null
 
   return (
     <div className="absolute top-10 right-4 w-64 bg-bg-secondary rounded-md shadow-lg border border-border-medium translate-x-2">
@@ -128,14 +129,13 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ isVisible, onClose }
           </div>
         </div>
 
+        <div className="pt-2 border-t border-border-light">
+          <UpdateSettings />
+        </div>
+
         {/* Logout */}
         <div className="pt-2 border-t border-border-light">
-          <Button
-            variant="destructive"
-            size="sm"
-            className="w-full"
-            onClick={handleLogout}
-          >
+          <Button variant="destructive" size="sm" className="w-full" onClick={handleLogout}>
             <LogOut size={16} className="mr-1" />
             Đăng xuất
           </Button>

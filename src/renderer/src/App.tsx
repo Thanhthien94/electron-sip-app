@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import { useAuth } from './contexts/AuthContext'
 import { useCall } from './contexts/CallContext'
 import { useUI } from './contexts/UIContext'
-import { useTheme } from './contexts/ThemeContext'
 import { PhoneView } from './components/sip/PhoneView'
 import { CDRList } from './components/cdr/CDRList'
 import { CustomerList } from './components/customer/CustomerList'
@@ -11,16 +10,17 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/componen
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Loader } from './components/common/Loader'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Wifi, WifiOff, Settings, Moon, Sun } from 'lucide-react'
+import { Wifi, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DraggableTopBar } from './components/DraggableTopBar'
 import { SettingsMenu } from './components/settings'
+import { UpdateNotification } from './components/update/UpdateNotification'
 
 export default function App(): JSX.Element {
-  const { user, isAuthenticated, isLoading: authLoading, isConnecting, logout } = useAuth()
+  const { user, isAuthenticated, isLoading: authLoading, isConnecting } = useAuth()
   const { isCallActive, initSIP } = useCall()
   const { activeTab, setActiveTab } = useUI()
-  const { theme, setTheme, isDarkMode } = useTheme()
+  // const { setTheme, isDarkMode } = useTheme()
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
   // Thêm một ref để theo dõi trạng thái khởi tạo SIP
@@ -64,9 +64,9 @@ export default function App(): JSX.Element {
   }
 
   // Toggle theme function
-  const toggleTheme = () => {
-    setTheme(isDarkMode ? 'light' : 'dark')
-  }
+  // const toggleTheme = () => {
+  //   setTheme(isDarkMode ? 'light' : 'dark')
+  // }
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden">
@@ -177,6 +177,9 @@ export default function App(): JSX.Element {
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>
+      
+      {/* Thêm UpdateNotification component */}
+      <UpdateNotification />
     </div>
   )
 }

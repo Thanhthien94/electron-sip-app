@@ -218,7 +218,7 @@ export const Text: React.FC<TextProps> = ({
   const truncateClass = truncate ? 'truncate' : ''
   
   return (
-    <Component
+    <div
       className={twMerge(
         sizeClasses,
         weightClass,
@@ -229,7 +229,7 @@ export const Text: React.FC<TextProps> = ({
       {...props}
     >
       {children}
-    </Component>
+    </div>
   )
 }
 

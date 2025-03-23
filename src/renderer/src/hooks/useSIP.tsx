@@ -207,8 +207,10 @@ export const useSIP = (options: UseSIPOptions = {}) => {
               audioContextRef
             },
             {
-              addStream: addStreamToAudio,
-              handleEarlyMedia: setupEarlyMedia,
+              addStream: (session, audioElement) =>
+                addStreamToAudio(session, audioElement ?? null),
+              handleEarlyMedia: (session, audioElement) =>
+                setupEarlyMedia(session, audioElement ?? null),
               countTime,
               resetCall,
               createNewAudio: createAudioElement
@@ -285,7 +287,12 @@ export const useSIP = (options: UseSIPOptions = {}) => {
         const callOptions = {
           ...DEFAULT_CALL_OPTIONS,
           mediaConstraints: { audio: true, video: false },
-          pcConfig: DEFAULT_RTC_CONFIG,
+          pcConfig: {
+            ...DEFAULT_RTC_CONFIG,
+            bundlePolicy: DEFAULT_RTC_CONFIG.bundlePolicy as RTCBundlePolicy,
+            iceTransportPolicy: DEFAULT_RTC_CONFIG.iceTransportPolicy as RTCIceTransportPolicy,
+            rtcpMuxPolicy: "require" as const,
+          },
           earlyMedia: true,
           answerOnProgress: true
         }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useCall } from '@/contexts/CallContext'
-import { formatTime, time, formatDate } from '@/lib/moment'
+import { time, formatDate } from '@/lib/moment'
 import { CDR_DISPOSITION_TYPES } from '@/types/cdr.types'
 import { CALL_STATES } from '@/lib/sipConstants'
 import { AudioPlayer } from './AudioPlayer'
@@ -10,7 +10,6 @@ import {
   PhoneOutgoing,
   PhoneCall,
   Phone,
-  PhoneMissed,
   Mic,
   MicOff,
   Volume,
@@ -42,21 +41,24 @@ export const PhoneView = () => {
   // Reset destination when call ends or starts ringing
   useEffect(() => {
     if (callState === CALL_STATES.HANGUP || callState === CALL_STATES.RINGING) {
-      setDestination('')
+      setDestination('');
     }
-    
+
     // Hiển thị thông tin cuộc gọi vừa kết thúc
     if (callState === CALL_STATES.HANGUP && callEndInfo.code !== null) {
-      setShowLastCallInfo(true)
-      
+      setShowLastCallInfo(true);
+
       // Tự động ẩn thông tin sau 5 giây
       const timer = setTimeout(() => {
-        setShowLastCallInfo(false)
-      }, 5000)
-      
-      return () => clearTimeout(timer)
+        setShowLastCallInfo(false);
+      }, 5000);
+
+      return () => clearTimeout(timer);
     }
-  }, [callState, callEndInfo])
+
+    // Return a no-op cleanup function for other cases
+    return () => {};
+  }, [callState, callEndInfo]);
 
   // Hiển thị badge theo trạng thái cuộc gọi kết thúc
   const renderCallEndBadge = () => {

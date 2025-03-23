@@ -12,10 +12,12 @@ import { AuthProvider } from './contexts/AuthContext'
 import { CallProvider } from './contexts/CallContext'
 import { UIProvider } from './contexts/UIContext'
 import { ThemeProvider } from './contexts/ThemeContext'
+import { UpdateProvider } from './contexts/UpdateContext'
 
 /**
  * Cấu trúc ứng dụng:
  * - ThemeProvider: Quản lý theme và responsive styling
+ * - UpdateProvider: Quản lý cập nhật ứng dụng
  * - AuthProvider: Xác thực người dùng, quản lý phiên đăng nhập
  * - CallProvider: Quản lý cuộc gọi SIP
  * - UIProvider: Quản lý trạng thái UI, chuyển tab
@@ -39,13 +41,15 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
         />
         
         {/* Providers */}
-        <AuthProvider>
-          <CallProvider>
-            <UIProvider>
-              <App />
-            </UIProvider>
-          </CallProvider>
-        </AuthProvider>
+        <UpdateProvider>
+          <AuthProvider>
+            <CallProvider>
+              <UIProvider>
+                <App />
+              </UIProvider>
+            </CallProvider>
+          </AuthProvider>
+        </UpdateProvider>
       </div>
     </ThemeProvider>
   </React.StrictMode>

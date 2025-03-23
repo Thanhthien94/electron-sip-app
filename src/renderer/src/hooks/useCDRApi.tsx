@@ -52,7 +52,7 @@ export const useCDRApi = (
   const fetchCDRs = useCallback(async () => {
     if (!token) {
       setIsLoading(false)
-      return
+      return { isSessionExpired: false }
     }
 
     const queryParams = new URLSearchParams()
@@ -100,6 +100,7 @@ export const useCDRApi = (
         }
       }
       setIsLoading(false)
+      return { isSessionExpired: false }
     } catch (error: any) {
       setError(error)
       setIsLoading(false)
@@ -112,6 +113,7 @@ export const useCDRApi = (
       
       toast.error(error?.response?.data?.message || 'Không thể tải dữ liệu CDR', toastOptions)
       console.error('Error fetching CDRs:', error)
+      return { isSessionExpired: false }
     }
   }, [token, params, ...dependencyArray])
 

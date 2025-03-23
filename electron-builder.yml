@@ -11,6 +11,8 @@ files:
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
 asarUnpack:
   - resources/**
+  - node_modules/ffmpeg-static/**
+  - '**/*.dll'
 win:
   executableName: sip-app
   target:
@@ -47,3 +49,13 @@ publish:
   url: https://example.com/auto-updates
 electronDownload:
   mirror: https://npmmirror.com/mirrors/electron/
+extraResources:
+  - from: resources/ffmpeg
+    to: .
+  - from: resources/ffmpeg/ffmpeg.dll
+    to: .
+extraFiles:
+  - from: node_modules/ffmpeg-static/ffmpeg.exe
+    to: .
+  - from: node_modules/ffmpeg-static/ffmpeg.dll
+    to: .

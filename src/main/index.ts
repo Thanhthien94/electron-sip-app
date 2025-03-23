@@ -2,9 +2,9 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import electronUpdater from 'electron-updater'
 import * as path from 'path'
 import * as fs from 'fs'
+import { setupAutoUpdater } from './update-manager'
 
 // Biến theo dõi trạng thái cửa sổ
 let mainWindow: BrowserWindow | null = null
@@ -102,6 +102,9 @@ function createWindow(): void {
         version: app.getVersion(),
         appName: app.getName()
       })
+      
+      // Thiết lập auto updater
+      setupAutoUpdater(mainWindow)
     }
   })
 
@@ -207,7 +210,7 @@ function setupWindowControls() {
 // This method will be called when Electron has finished initialization
 app.whenReady().then(() => {
   // Set app user model id for windows
-  electronApp.setAppUserModelId('com.electron')
+  electronApp.setAppUserModelId('vn.onestar.sip-app')
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
@@ -222,14 +225,6 @@ app.whenReady().then(() => {
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
-  
-  // Thiết lập cập nhật tự động
-  const log = require("electron-log")
-  log.transports.file.level = "debug"
-  electronUpdater.autoUpdater.logger = log
-  
-  // Kiểm tra cập nhật
-  electronUpdater.autoUpdater.checkForUpdatesAndNotify()
 })
 
 // Quit when all windows are closed, except on macOS
@@ -250,7 +245,7 @@ const gotTheLock = app.requestSingleInstanceLock()
 if (!gotTheLock) {
   app.quit()
 } else {
-  app.on('second-instance', (_, commandLine, workingDirectory) => {
+  app.on('second-instance', (_, _commandLine, _workingDirectory) => {
     // Ai đó đã cố gắng chạy một phiên bản thứ hai, ta sẽ focus vào cửa sổ hiện tại
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore()

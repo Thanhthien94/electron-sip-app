@@ -109,6 +109,7 @@ export const AudioPlayer = ({ record, duration }: AudioPlayerProps) => {
         setLoadError('Không thể khởi tạo trình phát audio.')
       }
     }
+    return undefined
   }, [record, duration])
   
   // Update volume when it changes

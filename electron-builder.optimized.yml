@@ -1,0 +1,99 @@
+appId: vn.onestar.sip-app
+productName: Onestar SIP
+directories:
+  buildResources: build
+files:
+  - '!**/.vscode/*'
+  - '!src/*'
+  - '!electron.vite.config.{js,ts,mjs,cjs}'
+  - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
+  - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
+  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+asarUnpack:
+  - resources/**
+
+# Cấu hình xây dựng cho Windows
+win:
+  executableName: onestar-sip
+  # Icon cho ứng dụng
+  icon: build/icon.ico
+  target:
+    - target: nsis
+      arch:
+        - ia32
+        - x64
+
+# Cấu hình NSIS installer cho Windows
+nsis:
+  artifactName: ${productName}-Setup-${version}.${ext}
+  shortcutName: ${productName}
+  uninstallDisplayName: ${productName}
+  createDesktopShortcut: always
+  # Một số options hữu ích cho NSIS
+  oneClick: true
+  perMachine: false # Cài đặt cho người dùng hiện tại
+  allowToChangeInstallationDirectory: false
+  runAfterFinish: true
+  deleteAppDataOnUninstall: false
+
+# Cấu hình xây dựng cho macOS
+mac:
+  entitlementsInherit: build/entitlements.mac.plist
+  # Icon cho ứng dụng
+  icon: build/icon.icns
+  # Bao gồm các quyền truy cập cho ứng dụng
+  extendInfo:
+    - NSCameraUsageDescription: Application requests access to the device's camera.
+    - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
+    - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
+    - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
+  notarize: false # Đặt thành true nếu muốn notarize app với Apple
+
+# Cấu hình DMG cho macOS
+dmg:
+  artifactName: ${productName}-${version}.${ext}
+  window:
+    width: 540
+    height: 380
+  contents:
+    - x: 410
+      y: 190
+      type: link
+      path: /Applications
+    - x: 130
+      y: 190
+      type: file
+
+# Cấu hình xây dựng cho Linux
+linux:
+  # Icon cho ứng dụng
+  icon: build/icons
+  target:
+    - AppImage
+    - snap
+    - deb
+  maintainer: onestar.vn
+  category: Office
+  description: Onestar SIP - Ứng dụng gọi điện qua SIP
+
+# Cấu hình AppImage cho Linux
+appImage:
+  artifactName: ${productName}-${version}.${ext}
+  # Sử dụng mimetype cho các loại file liên quan
+  mimeTypes:
+    - x-scheme-handler/sip
+    - x-scheme-handler/tel
+
+# Cấu hình cập nhật tự động
+publish:
+  provider: generic
+  url: https://office.onestar.vn/updates/${os}
+  updaterCacheDirName: onestar-sip-updater
+  channel: latest
+
+# Tắt npm rebuild để tăng tốc quá trình build
+npmRebuild: false
+
+# Sử dụng mirror cho việc tải Electron (giúp tăng tốc ở Việt Nam)
+electronDownload:
+  mirror: https://npmmirror.com/mirrors/electron/

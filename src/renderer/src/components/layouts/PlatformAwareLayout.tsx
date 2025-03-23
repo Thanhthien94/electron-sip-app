@@ -77,7 +77,7 @@ export const PlatformAwareLayout: React.FC<PlatformAwareLayoutProps> = ({
       <div className="fixed inset-0 pointer-events-none z-[9999]">
         {/* TopBar điều chỉnh theo từng nền tảng */}
         <div className="w-full h-10">
-          <DraggableTopBar platform={platform} />
+          <DraggableTopBar />
         </div>
         
         {/* Controls area - để đặt các nút điều khiển */}

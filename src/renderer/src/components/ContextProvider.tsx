@@ -18,7 +18,6 @@ import { getItem, saveItem, clearLocalStorage } from '@/store/LocalStorage'
 import JsSIP from 'jssip'
 import Dialog from './Dialog'
 import debug from 'debug'
-import { stat } from 'fs'
 
 debug.enable('JsSIP:*')
 // debug.enable('JsSIP:RTCSession');

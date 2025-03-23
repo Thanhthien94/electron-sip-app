@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCall } from '@/contexts/CallContext'
 import { useCustomerApi } from '@/hooks/useCustomerApi'
@@ -25,8 +25,7 @@ export const CustomerList = () => {
   const { 
     data: customers, 
     isLoading, 
-    error 
-  } = useCustomerApi(searchParams, user?.token)
+  } = useCustomerApi(searchParams, user?.token ?? null, [user?.token ?? null])
   
   // Handle search input with debounce
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {

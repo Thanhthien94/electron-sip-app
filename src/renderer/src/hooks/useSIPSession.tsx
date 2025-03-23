@@ -1,5 +1,3 @@
-import { toast } from 'react-toastify'
-import { toastOptions } from '@/lib/toast'
 import { CALL_STATES, SIP_CODE_MESSAGES } from '@/lib/sipConstants'
 
 // Utility to extract SIP code from raw message
@@ -165,8 +163,7 @@ export const handleRTCSession = (
   const completeSession = (data: any) => {
     let sipCode: number | null = null
     let reason = ''
-    let isSuccessful = false
-
+    
     try {
       console.log('Call completion data:', {
         cause: data.cause,
@@ -249,19 +246,20 @@ export const handleRTCSession = (
         }
       }
 
+      // let isSuccessful = false
       // Log final determination
       console.log(`Call ended with cause: "${data.cause}", SIP code: ${sipCode}`)
 
       // Map SIP code to user-friendly reason using SIP_CODE_MESSAGES
       if (sipCode !== null && SIP_CODE_MESSAGES[sipCode]) {
         reason = SIP_CODE_MESSAGES[sipCode]
-        isSuccessful = sipCode >= 200 && sipCode < 300
+        // isSuccessful = sipCode >= 200 && sipCode < 300
       } else {
         // Fallback if code is not defined in our constants
         if (sipCode !== null) {
           if (sipCode >= 200 && sipCode < 300) {
             reason = 'Kết thúc bình thường'
-            isSuccessful = true
+            // isSuccessful = true
           } else if (sipCode === 487) {
             reason = 'Cuộc gọi bị hủy'
           } else if (sipCode === 408) {

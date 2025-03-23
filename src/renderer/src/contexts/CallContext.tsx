@@ -13,6 +13,14 @@ import {
 // Cấu hình thử lại kết nối thông minh
 const CALL_RETRY_DELAYS = [1500, 3000, 5000]; // ms
 
+// Extend the Window interface to include custom properties
+declare global {
+  interface Window {
+    _sipLoopCount?: number;
+    _lastInitTime: number;
+  }
+}
+
 // Biến toàn cục để theo dõi loop
 if (typeof window !== 'undefined') {
   window._sipLoopCount = window._sipLoopCount || 0;

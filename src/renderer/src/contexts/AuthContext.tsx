@@ -1,4 +1,11 @@
 import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react'
+
+// Extend the Window interface to include _sipLoopCount
+declare global {
+  interface Window {
+    _sipLoopCount?: number;
+  }
+}
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import { AUTH_URL } from '@/lib/config'

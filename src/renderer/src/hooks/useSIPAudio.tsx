@@ -56,7 +56,7 @@ export const setupEarlyMedia = (
   session: any,
   audioElement: HTMLAudioElement | null,
   hasEarlyMediaRef?: React.MutableRefObject<boolean>, // Làm tham số này tùy chọn
-  audioContextRef?: React.MutableRefObject<AudioContext | null>
+  // audioContextRef?: React.MutableRefObject<AudioContext | null>
 ): void => {
   console.log('Setting up early media handling for session')
 
@@ -84,7 +84,7 @@ export const setupEarlyMedia = (
       console.log('Early media already set up, checking streams')
     }
 
-    let remoteStream = null
+    let remoteStream: MediaStream | null = null
 
     // Thử lấy stream từ các nguồn khác nhau
     try {
@@ -199,7 +199,7 @@ export const setupEarlyMedia = (
 export const addStreamToAudio = (
   session: any,
   audioElement: HTMLAudioElement | null,
-  audioContextRef?: React.MutableRefObject<AudioContext | null>
+  // audioContextRef?: React.MutableRefObject<AudioContext | null>
 ): (() => void) | undefined => {
   console.log('Adding stream to audio element')
 
@@ -273,7 +273,7 @@ export const addStreamToAudio = (
 
     // Kiểm tra và thiết lập stream đã có sẵn trong session
     try {
-      let existingStream = null
+      let existingStream: MediaStream | null = null
 
       // Check session connection
       if (

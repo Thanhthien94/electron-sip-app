@@ -35,7 +35,7 @@ export const useCustomerApi = (
   const fetchCustomers = useCallback(async () => {
     if (!token) {
       setIsLoading(false)
-      return
+      return { isSessionExpired: false }
     }
     
     const queryParams = new URLSearchParams()
@@ -74,6 +74,7 @@ export const useCustomerApi = (
       }
       
       setIsLoading(false)
+      return { isSessionExpired: false }
     } catch (error: any) {
       setError(error)
       setIsLoading(false)
@@ -86,6 +87,7 @@ export const useCustomerApi = (
       
       toast.error(error?.response?.data?.message || 'Không thể tải dữ liệu khách hàng', toastOptions)
       console.error('Error fetching customers:', error)
+      return { isSessionExpired: false }
     }
   }, [token, params, ...dependencyArray])
   
